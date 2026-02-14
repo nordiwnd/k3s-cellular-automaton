@@ -7,6 +7,14 @@ edition = "2021"
 tokio = { version = "1.36", features = ["macros", "rt-multi-thread", "signal"] }
 tonic = "0.11"
 prost = "0.12"
+kube = { version = "0.88", features = ["runtime", "derive"] }
+k8s-openapi = { version = "0.21.0", features = ["v1_29"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+rand = "0.8"
+
+[build-dependencies]
+tonic-build = "0.11"
 
 [profile.release]
 opt-level = "z"     # Optimize for size

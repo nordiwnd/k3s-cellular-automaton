@@ -7,9 +7,16 @@ VERSION ?= $(shell git rev-parse --short HEAD)
 DEV_CONTEXT := k3d-gearpit-dev
 PROD_CONTEXT := default
 
-.PHONY: all dev release build-amd64 build-arm64
+.PHONY: all dev release build-amd64 build-arm64 proto
 
 all: dev
+
+proto:
+	@echo "Generating Go code from proto..."
+	protoc --go_out=grid-controller --go_opt=paths=source_relative \
+		--go-grpc_out=grid-controller --go-grpc_opt=paths=source_relative \
+		proto/cell.proto
+	@echo "Rust code is generated automatically by build.rs during cargo build."
 
 # --- Development (AMD64 -> k3d) ---
 dev: build-amd64 import-k3d

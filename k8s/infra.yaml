@@ -1,3 +1,33 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: grid-controller
+  namespace: cellular-automaton
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: grid-controller
+  namespace: cellular-automaton
+rules:
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["list", "watch", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: grid-controller-binding
+  namespace: cellular-automaton
+subjects:
+- kind: ServiceAccount
+  name: grid-controller
+  namespace: cellular-automaton
+roleRef:
+  kind: Role
+  name: grid-controller
+  apiGroup: rbac.authorization.k8s.io
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -15,12 +45,18 @@ spec:
       labels:
         app: grid-controller
     spec:
+      serviceAccountName: grid-controller
       containers:
         - name: controller
           image: ghcr.io/nordiwnd/k3s-cellular-automaton/grid-controller:latest
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           ports:
             - containerPort: 8080
+          env:
+          - name: NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
           resources:
             requests:
               memory: "64Mi"
@@ -62,7 +98,7 @@ spec:
       containers:
         - name: ui
           image: ghcr.io/nordiwnd/k3s-cellular-automaton/dashboard-ui:latest
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           ports:
             - containerPort: 80
           resources:

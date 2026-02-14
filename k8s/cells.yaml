@@ -1,3 +1,42 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: cell
+  namespace: cellular-automaton
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: cell-worker
+  namespace: cellular-automaton
+rules:
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["get", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: cell-worker-binding
+  namespace: cellular-automaton
+subjects:
+- kind: ServiceAccount
+  name: cell
+  namespace: cellular-automaton
+roleRef:
+  kind: Role
+  name: cell-worker
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cell-config
+  namespace: cellular-automaton
+data:
+  GRID_WIDTH: "10"
+  TICK_INTERVAL_MS: "1000"
+---
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -8,6 +47,7 @@ metadata:
 spec:
   serviceName: "cell"
   replicas: 10 # Start small, user can scale
+  podManagementPolicy: Parallel # Start all pods at once
   selector:
     matchLabels:
       app: cell
@@ -16,12 +56,12 @@ spec:
       labels:
         app: cell
     spec:
+      serviceAccountName: cell
       containers:
         - name: worker
           image: ghcr.io/nordiwnd/k3s-cellular-automaton/cells-worker:latest
-          # ImagePullPolicy: Never for local dev with k3d import, 
-          # but k3d handles "IfNotPresent" well if imported.
-          imagePullPolicy: IfNotPresent 
+          # Always pull to ensure we get the latest build from CI/CD
+          imagePullPolicy: Always 
           resources:
             requests:
               memory: "5Mi"
@@ -29,9 +69,20 @@ spec:
             limits:
               memory: "10Mi" # Strict limit as requested
               cpu: "50m"
+          envFrom:
+            - configMapRef:
+                name: cell-config
           env:
           - name: RUST_LOG
             value: "info"
+          - name: NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
+          - name: HOSTNAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
 ---
 apiVersion: v1
 kind: Service

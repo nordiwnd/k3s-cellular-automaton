@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+package cell;
+
+option go_package = "github.com/nordiwnd/k3s-cellular-automaton/grid-controller/proto/cell";
+
+// The CellService defines the communication between cells (pods).
+service CellService {
+  // GetStatus returns the current life status and generation of the cell.
+  rpc GetStatus (Empty) returns (Status);
+}
+
+// Empty message for requests that carry no data.
+message Empty {}
+
+// Status represents the state of a cell.
+message Status {
+  // alive indicates if the cell is currently alive.
+  bool alive = 1;
+  // generation is the current tick/generation count of the cell.
+  int32 generation = 2;
+}
