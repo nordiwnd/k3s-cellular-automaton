@@ -1,6 +1,6 @@
 # Variables
 REPO_PREFIX ?= ghcr.io/nordiwnd/k3s-cellular-automaton
-TAG ?= dev
+TAG ?= latest
 VERSION ?= $(shell git rev-parse --short HEAD)
 
 # Contexts

@@ -1,0 +1,37 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: cells-ingress
+  namespace: cellular-automaton
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: web
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: cells.192.168.40.100.nip.io
+      http:
+        paths:
+          # Frontend Dashboard
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: dashboard-ui
+                port:
+                  number: 80
+          # Controller API
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: grid-controller
+                port:
+                  number: 80
+          # Controller WebSocket
+          - path: /ws
+            pathType: Prefix
+            backend:
+              service:
+                name: grid-controller
+                port:
+                  number: 80
