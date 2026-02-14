@@ -1,0 +1,16 @@
+[package]
+name = "cells-worker"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+tokio = { version = "1.35", features = ["rt", "macros", "net", "signal"] }
+tonic = "0.10"
+prost = "0.12"
+
+[profile.release]
+opt-level = "z"     # Optimize for size
+lto = true          # Enable Link Time Optimization
+codegen-units = 1   # Maximize size reduction optimization
+panic = "abort"     # Remove panic unwinding
+strip = true        # Strip symbols from binary

@@ -1,0 +1,69 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grid-controller
+  labels:
+    app: grid-controller
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: grid-controller
+  template:
+    metadata:
+      labels:
+        app: grid-controller
+    spec:
+      containers:
+      - name: controller
+        image: ghcr.io/nordiwnd/k3s-cellular-automaton/grid-controller:dev
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: grid-controller
+spec:
+  type: ClusterIP
+  selector:
+    app: grid-controller
+  ports:
+  - port: 80
+    targetPort: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dashboard-ui
+  labels:
+    app: dashboard-ui
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dashboard-ui
+  template:
+    metadata:
+      labels:
+        app: dashboard-ui
+    spec:
+      containers:
+      - name: ui
+        image: ghcr.io/nordiwnd/k3s-cellular-automaton/dashboard-ui:dev
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dashboard-ui
+spec:
+  type: LoadBalancer # Easy access in k3d/k3s
+  selector:
+    app: dashboard-ui
+  ports:
+  - port: 80
+    targetPort: 80

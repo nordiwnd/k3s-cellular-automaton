@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: cell
+  labels:
+    app: cell
+spec:
+  serviceName: "cell"
+  replicas: 10 # Start small, user can scale
+  selector:
+    matchLabels:
+      app: cell
+  template:
+    metadata:
+      labels:
+        app: cell
+    spec:
+      containers:
+      - name: worker
+        image: ghcr.io/nordiwnd/k3s-cellular-automaton/cells-worker:dev
+        # ImagePullPolicy: Never for local dev with k3d import, 
+        # but k3d handles "IfNotPresent" well if imported.
+        imagePullPolicy: IfNotPresent 
+        resources:
+          requests:
+            memory: "5Mi"
+            cpu: "10m"
+          limits:
+            memory: "10Mi" # Strict limit as requested
+            cpu: "50m"
+        env:
+        - name: RUST_LOG
+          value: "info"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cell
+  labels:
+    app: cell
+spec:
+  ports:
+  - port: 50051
+    name: grpc
+  clusterIP: None
+  selector:
+    app: cell
